@@ -5,7 +5,10 @@ import org.matheclipse.core.eval.TeXUtilities;
 import org.matheclipse.core.interfaces.IAST;
 import org.matheclipse.core.interfaces.IExpr;
 import org.matheclipse.core.interfaces.ISymbol;
+import org.scilab.forge.jlatexmath.TeXConstants;
+import org.scilab.forge.jlatexmath.TeXFormula;
 
+import javax.swing.*;
 import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,36 +18,22 @@ public class FormulaProcessor {
 
     public static final ExprEvaluator EVALUATOR = new ExprEvaluator();
 
-//    private static final Set<String> INVALID_VARIABLES = Set.of(
-//            "e", "pi", // Constants
-//            "sin", "cos", "tan", "asin", "acos", "atan", // Trig functions
-//            "log", "log10", "log2", "ln", "exp", // Logarithms and exponentials
-//            "sqrt", "cbrt", // Roots
-//            "abs", "ceil", "floor", "round", "signum", // Misc math functions
-//            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", // Hyperbolic functions
-//            "min", "max", "pow", "hypot", "random" // Other useful functions
-//    );
-
     // Public methods
     public static FormulaRecord processFormula(String name, String formula) throws IllegalArgumentException {
         String expression = fixShorthandFormatting(formula);
-        String latexExpression;
         Set<String> symbols = new HashSet<>();
 
         // Throw an IllegalArgumentException so calling class can handle it. Essentially validates and assigns in one step
         try {
             IExpr parsedExpression = EVALUATOR.parse(expression);
             extractSymbols(parsedExpression, symbols);
-            latexExpression = generateLatexStub(parsedExpression);
         } catch (Exception e) {
             throw new IllegalArgumentException();
         }
 
         return new FormulaRecord(
-                UUID.randomUUID().toString(),
                 name,
                 expression,
-                latexExpression,
                 symbols
         );
     }
@@ -70,21 +59,7 @@ public class FormulaProcessor {
         }
     }
 
-//    private static Set<String> extractVariables(String formula) {
-//        Set<String> variables = new HashSet<>();
-//        Pattern pattern = Pattern.compile("\\b[a-zA-Z]\\w*\\b"); // finds all single letter variables
-//        Matcher matcher = pattern.matcher(formula);
-//
-//        while (matcher.find()) {
-//            String var = matcher.group();
-//            if (!INVALID_VARIABLES.contains(var)) {
-//                variables.add(var);
-//            }
-//        }
-//        return variables;
-//    }
-
-    public static String generateLatexStub(IExpr parsedExpression) throws IllegalArgumentException {
+    public static String generateLatexStub(IExpr parsedExpression) {
 
         StringWriter writer = new StringWriter();
         TeXUtilities texUtil = new TeXUtilities(EVALUATOR.getEvalEngine(), false);
@@ -93,7 +68,14 @@ public class FormulaProcessor {
         if (success) {
             return writer.toString();
         } else {
-            throw new IllegalArgumentException();
+            return null;
         }
+    }
+
+    public static Icon generateLatexIcon(String input) {
+            IExpr parsedExpression = EVALUATOR.parse(input);
+            String latexStub = generateLatexStub(parsedExpression);
+            TeXFormula formula = new TeXFormula(latexStub);
+            return formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 20);
     }
 }

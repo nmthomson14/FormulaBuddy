@@ -13,6 +13,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 public class GUIBuilder implements MessageReceiver {
@@ -22,33 +23,7 @@ public class GUIBuilder implements MessageReceiver {
     private static final int UI_WIDTH = 700;
     private static final String PROGRAM_NAME = "Formula Buddy";
 
-    // Common functions and their latex equivalent. Left string is inserted into formula, right is used to generate a button.
-    private static final Map<String, String> COMMON_FUNCTIONS = Map.ofEntries(
-            Map.entry("sqrt()", "\\sqrt{x}"),          // square root
-            Map.entry("abs()", "\\left|x\\right|"),    // absolute value
-            Map.entry("sin()", "\\sin{x}"),            // sine
-            Map.entry("cos()", "\\cos{x}"),            // cosine
-            Map.entry("tan()", "\\tan{x}"),            // tangent
-            Map.entry("asin()", "\\sin^{-1}{x}"),      // arcsine
-            Map.entry("acos()", "\\cos^{-1}{x}"),      // arccosine
-            Map.entry("atan()", "\\tan^{-1}{x}"),      // arctangent
-            Map.entry("log()", "\\log_{10}{x}"),       // logarithm base 10
-            Map.entry("ln()", "\\ln{x}"),              // natural logarithm
-            Map.entry("exp()", "e^{x}"),               // exponential
-            Map.entry("pow( , )", "x^{y}"),            // power
-            Map.entry("nthRoot( , )", "\\sqrt[y]{x}"), // nth root
-            Map.entry("floor()", "\\lfloor{x}\\rfloor"), // floor
-            Map.entry("ceil()", "\\lceil{x}\\rceil"),    // ceiling
-            Map.entry("round()", "\\text{round}(x)"),    // round
-            Map.entry("min( , )", "\\min(x, y)"),         // minimum
-            Map.entry("max( , )", "\\max(x, y)"),         // maximum
-            Map.entry("mod( , )", "x \\bmod y"),          // modulo
-            Map.entry("diff( , )", "\\frac{d}{dx}x"),     // derivative
-            Map.entry("integrate( , )", "\\int x \\, dx"),// integral
-            Map.entry("sum( , )", "\\sum_{i=1}^{n} x_i"), // summation
-            Map.entry("product( , )", "\\prod_{i=1}^{n} x_i"), // product
-            Map.entry("limit( , )", "\\lim_{x \\to a} f(x)")   // limit
-    );
+
 
     // Ui components
     private JTextArea systemOutput;
@@ -57,6 +32,8 @@ public class GUIBuilder implements MessageReceiver {
     private JFrame mainFrame;
 
     // Handlers
+
+    // TODO: DECONSTRUCT AND REPLACE THIS WITH UI DESIGNER COMPONENTS
 
     public GUIBuilder() {
 
@@ -129,11 +106,6 @@ public class GUIBuilder implements MessageReceiver {
     }
 
     private void buildFormulaInputScreen() {
-
-        // TODO: CREATE A LIST OF BUTTON (PROBABLY A CLASS) THAT ARE DEFINED GLOBAL PRIVATE
-        // THESE BUTTONS HAVE A NAME, IMAGE (LIKE SQUARE ROOT SYMBOL) AND WHEN PRESSED
-        // INPUT A CERTAIN STRING IE SQUARE ROOT IS SQRT() MAKING IT EASIER FOR FORMULA INPUT
-
         // Define JComponents
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter a formula!");
@@ -143,6 +115,7 @@ public class GUIBuilder implements MessageReceiver {
         JButton cancel = new JButton("Cancel");
         JDialog dialog = createCalculatorDialog(mainFrame, formulaInput);
         JLabel latexLabel = new JLabel();
+        JPanel formulaExecutorScreen = buildEmptyFormulaExecutorScreen();
 
         // Set panel defaults
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -153,7 +126,9 @@ public class GUIBuilder implements MessageReceiver {
             dialog.setVisible(true);
         });
         save.addActionListener(e -> {
-            throw new NotImplementedException();
+            populateFormulaExecutorScreen(formulaExecutorScreen, formulaInput.getText());
+            cardLayout.show(stackedPanel, "FORMULAEXECUTOR");
+            System.out.println("doing...");
         });
         cancel.addActionListener(e -> {
             throw new NotImplementedException();
@@ -182,17 +157,11 @@ public class GUIBuilder implements MessageReceiver {
                 }
 
                 try {
-                    IExpr parsedExpression = FormulaProcessor.EVALUATOR.parse(formulaInput.getText());
-                    StringWriter writer = new StringWriter();
-                    TeXUtilities texUtil = new TeXUtilities(FormulaProcessor.EVALUATOR.getEvalEngine(), false);
-                    boolean success = texUtil.toTeX(parsedExpression, writer);
-                    Icon latexIcon = generateLatexIcon(FormulaProcessor.generateLatexStub(parsedExpression));
-                    if (success) {
-                        latexLabel.setIcon(latexIcon);
-                        latexLabel.setText(null);
-                    }
+                    Icon latexIcon = FormulaProcessor.generateLatexIcon(formulaInput.getText());
+                    latexLabel.setIcon(latexIcon);
+                    latexLabel.setText(null);
                 } catch (Exception ex) {
-                    // Do not update
+                    latexLabel.setIcon(null);
                 }
             }
         });
@@ -215,6 +184,77 @@ public class GUIBuilder implements MessageReceiver {
 
     }
 
+    private JPanel buildEmptyFormulaExecutorScreen() {
+        JPanel panel = new JPanel();
+
+        // Set panel defaults
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(Box.createVerticalStrut(10)); // spacer
+
+        stackedPanel.add(panel, "FORMULAEXECUTOR");
+        return panel;
+    }
+
+    private void populateFormulaExecutorScreen(JPanel panel, String formula) {
+        panel.removeAll();
+
+        // JComponents
+        JLabel result = new JLabel();
+        JButton evaluateButton = new JButton("Evaluate");
+
+        // Set panel defaults
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(Box.createVerticalStrut(10)); // spacer
+
+        FormulaRecord record;
+
+        try {
+            record = FormulaProcessor.processFormula("Test formula", formula);
+        } catch (IllegalArgumentException ex) {
+            System.out.println(ex.getMessage());
+            return;
+        }
+
+        JLabel label = new JLabel();
+        label.setIcon(FormulaProcessor.generateLatexIcon(record.expression()));
+        addComponent(label, panel, 10);
+        HashMap<String, String> variables = new HashMap<>();
+
+        for (String symbol : record.symbols()) {
+            variables.put(symbol, symbol);
+            JLabel lab = new JLabel(symbol);
+            addComponent(lab, panel, 0);
+            JTextField field = new JTextField();
+            addComponent(field, panel, 10);
+            field.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    assignVariable();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    assignVariable();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    assignVariable();
+                }
+                private void assignVariable() {
+                    variables.put(symbol, field.getText());
+                }
+            });
+        }
+
+        evaluateButton.addActionListener(e -> {
+            result.setText(FormulaEvaluator.evaluate(record, variables).toString());
+        });
+
+        addComponent(result, panel, 10);
+        addComponent(evaluateButton, panel, 10);
+    }
+
     private JDialog createCalculatorDialog(JFrame owner, JTextField formulaInput) {
         JDialog dialog = new JDialog(owner, "Calculator Functions", false);
         dialog.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -228,8 +268,9 @@ public class GUIBuilder implements MessageReceiver {
         JPanel buttonsPanel = new JPanel(new GridLayout(0, 3, 5, 5));
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        for (Map.Entry<String, String> entry : COMMON_FUNCTIONS.entrySet()) {
-            JButton btn = createCalculatorSymbolButton(formulaInput, entry.getKey(), entry.getValue());
+        for (var record : FunctionDictionary.COMMON_FUNCTIONS) {
+            JButton btn = createCalculatorSymbolButton(formulaInput, record.symjaFunction(), record.latexFunction());
+            if (btn == null) { continue; }
             buttonsPanel.add(btn);
         }
 
@@ -278,25 +319,21 @@ public class GUIBuilder implements MessageReceiver {
     }
 
     private JButton createCalculatorSymbolButton(JTextField formulaInput, String function, String latex) {
-        JButton button = new JButton(generateLatexIcon(latex));
+        try {
+            JButton button = new JButton(FormulaProcessor.generateLatexIcon(function));
 
-        int inputStart = function.indexOf('(');
-        String funcName = inputStart != -1 ? function.substring(0, inputStart + 1) : function;
-        String funcArgs = inputStart != -1 ? function.substring(inputStart + 1) : "";
+            int inputStart = function.indexOf('(');
+            String funcName = inputStart != -1 ? function.substring(0, inputStart + 1) : function;
+            String funcArgs = inputStart != -1 ? function.substring(inputStart + 1) : "";
 
-        button.addActionListener(e -> {
-            insertFunction(formulaInput, funcName, funcArgs);
-        });
+            button.addActionListener(e -> {
+                insertFunction(formulaInput, funcName, funcArgs);
+            });
 
-        return button;
-    }
-
-    private Icon generateLatexIcon(String latex) {
-        // Parse LaTeX formula
-        TeXFormula formula = new TeXFormula(latex);
-
-        // Create an icon of the formula (size 20)
-        return formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 20);
+            return button;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override

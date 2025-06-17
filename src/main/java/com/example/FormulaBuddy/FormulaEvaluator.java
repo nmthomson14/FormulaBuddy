@@ -1,7 +1,9 @@
 package com.example.FormulaBuddy;
 
+import org.matheclipse.core.eval.ExprEvaluator;
 import org.matheclipse.core.interfaces.IExpr;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class FormulaEvaluator {
@@ -15,8 +17,16 @@ public class FormulaEvaluator {
         //exprEvaluator = new ExprEvaluator(false, 100);
     }
 
-    public void evaluate(FormulaRecord formulaRecord) {
-
+    public static IExpr evaluate(FormulaRecord formulaRecord, HashMap<String, String> variables) {
+        ExprEvaluator evaluator = new ExprEvaluator();
+        IExpr parsedExpression = evaluator.parse(formulaRecord.expression());
+        for (var entry : variables.entrySet()) {
+            if (formulaRecord.symbols().contains(entry.getKey())) {
+                IExpr varValue = evaluator.parse(entry.getValue());
+                evaluator.defineVariable(entry.getKey(), varValue);
+            }
+        }
+        return evaluator.eval(parsedExpression);
     }
 
     public void parseFormula(String expression) {
