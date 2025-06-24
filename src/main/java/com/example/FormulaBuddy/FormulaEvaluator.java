@@ -1,20 +1,42 @@
 package com.example.FormulaBuddy;
 
 import org.matheclipse.core.eval.ExprEvaluator;
+import org.matheclipse.core.expression.F;
 import org.matheclipse.core.interfaces.IExpr;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class FormulaEvaluator {
 
-    //private final ExprEvaluator exprEvaluator;
-    private String lastParsedExpression;
-    private IExpr parsedExpression;
+    public static String solveForUnknown(String equation, HashMap<String, Double> values, String unknown) {
+        ExprEvaluator evaluator = new ExprEvaluator();
 
-    public FormulaEvaluator() {
-        // Initialize Symja evaluator with built-in functions/constants
-        //exprEvaluator = new ExprEvaluator(false, 100);
+        try {
+            // Convert = to == for Symja Solve
+            String expression = equation.replace("=", "==");
+
+            // Define known variables
+            for (var entry : values.entrySet()) {
+                evaluator.defineVariable(entry.getKey(), F.num(entry.getValue()));
+            }
+
+            // Solve for the unknown
+            IExpr result = evaluator.eval("Solve(" + expression + ", " + unknown + ")");
+
+            // Expecting result like: {{y -> 76.8}}
+            if (result.isList() && !result.isEmpty() && result.getAt(1).isList()) {
+                IExpr rule = result.getAt(1).getAt(1); // Extract y -> 76.8
+
+                if (rule.isAST() && rule.size() == 3 && rule.getAt(0).toString().equals("Rule")) {
+                    IExpr value = rule.getAt(2); // Get the value (RHS)
+                    return unknown + " = " + value.toString();
+                }
+            }
+
+            return "No solution found.";
+        } catch (Exception e) {
+            return "Error solving equation: " + e.getMessage();
+        }
     }
 
     public static IExpr evaluate(FormulaRecord formulaRecord, HashMap<String, String> variables) {
@@ -29,34 +51,9 @@ public class FormulaEvaluator {
         return evaluator.eval(parsedExpression);
     }
 
-    public void parseFormula(String expression) {
-        lastParsedExpression = expression;
-        //parsedExpression = exprEvaluator.parse(expression);
+    // TODO: CREATE A METHOD THAT EVALUATES EACH STEP OF A FORMULA, RETURNING AN IEXPRESSION THAT CAN BE RENDERED AS LATEX
+    // TODO: COULD ALSO RETURN STRINGS IF THATS EASIER
+    public static IExpr[] evaluateSteps() {
+        return null;
     }
-
-//    public double evaluate(String expression, Map<String, Double> variableValues) {
-//        // Parse if needed
-//        if (parsedExpression == null || !expression.equals(lastParsedExpression)) {
-//            parseFormula(expression);
-//        }
-//
-//        // Set variables as rules
-//        for (Map.Entry<String, Double> entry : variableValues.entrySet()) {
-//            exprEvaluator.defineVariable(entry.getKey(), F.num(entry.getValue()));
-//        }
-//
-//        // Evaluate expression
-//        IExpr result = exprEvaluator.evaluate(parsedExpression);
-//
-//        if (result.isReal() || result.isInteger() || result.isNumeric()) {
-//            return result.evalDouble();
-//        } else {
-//            throw new IllegalStateException("Evaluation did not return a numeric result");
-//        }
-//    }
-
-//    public String toLatex(String expression) {
-//        IExpr expr = exprEvaluator.parse(expression);
-//        return toLatex();
-//    }
 }

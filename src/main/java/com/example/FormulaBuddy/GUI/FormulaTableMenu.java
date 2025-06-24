@@ -6,11 +6,12 @@ import com.example.FormulaBuddy.FormulaRecord;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.util.List;
 
 public class FormulaTableMenu {
+
+    // ui
     private JPanel panel1;
     private JTable table1;
     private JButton deleteFormulaButton;
@@ -20,6 +21,9 @@ public class FormulaTableMenu {
     private JTextField searchTextField;
     private JLabel renderedFormulaLabel;
     private TableRowSorter<FormulaTableModel> rowSorter;
+
+    //references
+    private FormulaRecord selectedFormula = null;
 
     static class FormulaTableModel extends AbstractTableModel {
         private final List<FormulaRecord> formulas;
@@ -62,8 +66,15 @@ public class FormulaTableMenu {
     }
 
     public FormulaTableMenu() {
+        // Populate table and create selection event
+        List<FormulaRecord> formulaRecords = FileHandler.getFormulaRecords();
+        FormulaTableModel model = new FormulaTableModel(formulaRecords);
+        table1.setModel(model);
+        rowSorter = new TableRowSorter<>(model);
+        table1.setRowSorter(rowSorter);
+        renderedFormulaLabel.setText(null);
 
-        // Create search events
+        // Create events
         searchTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
@@ -82,19 +93,17 @@ public class FormulaTableMenu {
             }
         });
 
-        // Populate table and create selection event
-        List<FormulaRecord> formulaRecords = FileHandler.getFormulaRecords();
-        FormulaTableModel model = new FormulaTableModel(formulaRecords);
-        table1.setModel(model);
-        rowSorter = new TableRowSorter<>(model);
-        table1.setRowSorter(rowSorter);
-        renderedFormulaLabel.setText(null);
+        useFormulaButton.addActionListener(event -> {
+            if (selectedFormula == null) return;
+            UseFormulaMenu.createMenu(selectedFormula);
+        });
+
 
         table1.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
                 int selectedRow = table1.getSelectedRow();
                 if (selectedRow != -1) {
-                    FormulaRecord selectedFormula = model.getFormulaAt(selectedRow);
+                    selectedFormula = model.getFormulaAt(selectedRow);
                     Icon latexIcon = FormulaProcessor.generateLatexIcon(selectedFormula.expression());
                     renderedFormulaLabel.setIcon(latexIcon);
                 }
@@ -102,32 +111,9 @@ public class FormulaTableMenu {
         });
     }
 
-    private void createUIComponents() {
-        renderedFormulaLabel = new JLabel("");
-        renderedFormulaLabel.setText(null);
+    private void createUIComponents() { }
 
-        // Table creation
-//        List<FormulaRecord> formulaRecords = FileHandler.getFormulaRecords();
-//        FormulaTableModel model = new FormulaTableModel(formulaRecords);
-//        table1.setModel(model);
-
-//        String[] columnNames = {"Formula Name", "Calculator Expression", "Variables"};
-//        List<FormulaRecord> formulaRecords = FileHandler.getFormulaRecords();
-//        String[][] data = new String[formulaRecords.size()][3];
-//
-//        for (int i = 0; i < formulaRecords.size(); i++) {
-//            FormulaRecord record = formulaRecords.get(i);
-//            data[i][0] = record.name();                                 // Formula Name
-//            data[i][1] = record.expression();                           // Calculator Expression
-//            data[i][2] = String.join(", ", record.symbols());   // Symbols (Set -> String)
-//        }
-//
-//        DefaultTableModel model = new DefaultTableModel(data, columnNames);
-//        table1.setModel(model);
-//        rowSorter = new TableRowSorter<>(model);
-//        table1.setRowSorter(rowSorter);
-    }
-
+    // TODO: REMOVE -- FOR TEST PURPOSES ONLY
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Formula Buddy"); // Set window title

@@ -269,7 +269,7 @@ public class GUIBuilder implements MessageReceiver {
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         for (var record : FunctionDictionary.COMMON_FUNCTIONS) {
-            JButton btn = createCalculatorSymbolButton(formulaInput, record.symjaFunction(), record.latexFunction());
+            JButton btn = createCalculatorSymbolButton(formulaInput, record.symjaFunction());
             if (btn == null) { continue; }
             buttonsPanel.add(btn);
         }
@@ -318,7 +318,7 @@ public class GUIBuilder implements MessageReceiver {
         }
     }
 
-    private JButton createCalculatorSymbolButton(JTextField formulaInput, String function, String latex) {
+    private JButton createCalculatorSymbolButton(JTextField formulaInput, String function) {
         try {
             JButton button = new JButton(FormulaProcessor.generateLatexIcon(function));
 

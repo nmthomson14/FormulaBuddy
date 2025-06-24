@@ -10,9 +10,7 @@ import org.scilab.forge.jlatexmath.TeXFormula;
 
 import javax.swing.*;
 import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class FormulaProcessor {
 
@@ -21,7 +19,8 @@ public class FormulaProcessor {
     // Public methods
     public static FormulaRecord processFormula(String name, String formula) throws IllegalArgumentException {
         String expression = fixShorthandFormatting(formula);
-        Set<String> symbols = new HashSet<>();
+        List<String> symbols = new ArrayList<String>() {
+        };
 
         // Throw an IllegalArgumentException so calling class can handle it. Essentially validates and assigns in one step
         try {
@@ -44,7 +43,7 @@ public class FormulaProcessor {
         return formula.replaceAll("(\\d)([a-zA-Z])", "$1 * $2");
     }
 
-    private static void extractSymbols(IExpr expression, Set<String> symbols) {
+    private static void extractSymbols(IExpr expression, List<String> symbols) {
         // Check if the expression (1st pass) or subexpression is a Symbol
         if (expression instanceof ISymbol symbol) {
             if (!symbol.isBuiltInSymbol()) {
