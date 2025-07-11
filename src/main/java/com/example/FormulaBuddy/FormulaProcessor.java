@@ -11,13 +11,14 @@ import org.scilab.forge.jlatexmath.TeXFormula;
 import javax.swing.*;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.List;
 
 public class FormulaProcessor {
 
     public static final ExprEvaluator EVALUATOR = new ExprEvaluator();
 
     // Public methods
-    public static FormulaRecord processFormula(String name, String formula) throws IllegalArgumentException {
+    public static FormulaRecord processFormula(String name, String formula, String[] tags) throws IllegalArgumentException {
         String expression = fixShorthandFormatting(formula);
         List<String> symbols = new ArrayList<String>() {
         };
@@ -30,10 +31,13 @@ public class FormulaProcessor {
             throw new IllegalArgumentException();
         }
 
+        String[] symbolArray = symbols.toArray(new String[0]);
+
         return new FormulaRecord(
                 name,
                 expression,
-                symbols
+                symbolArray,
+                tags
         );
     }
 
@@ -59,7 +63,6 @@ public class FormulaProcessor {
     }
 
     public static String generateLatexStub(IExpr parsedExpression) {
-
         StringWriter writer = new StringWriter();
         TeXUtilities texUtil = new TeXUtilities(EVALUATOR.getEvalEngine(), false);
         boolean success = texUtil.toTeX(parsedExpression, writer);
@@ -70,11 +73,18 @@ public class FormulaProcessor {
             return null;
         }
     }
-
-    public static Icon generateLatexIcon(String input) {
+    public static Icon generateLatexIcon(String input, int size) {
+        try {
             IExpr parsedExpression = EVALUATOR.parse(input);
             String latexStub = generateLatexStub(parsedExpression);
-            TeXFormula formula = new TeXFormula(latexStub);
-            return formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 20);
+            if (latexStub == null) {
+                return null;
+            } else {
+                TeXFormula formula = new TeXFormula(latexStub);
+                return formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, size);
+            }
+        } catch (Throwable t) {
+            return null;
+        }
     }
 }

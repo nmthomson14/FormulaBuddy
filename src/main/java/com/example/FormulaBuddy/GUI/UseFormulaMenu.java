@@ -6,12 +6,7 @@ import com.example.FormulaBuddy.FormulaRecord;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class UseFormulaMenu {
     private JLabel formulaNameLabel;
@@ -21,6 +16,7 @@ public class UseFormulaMenu {
     private JButton evaluateButton;
     private JButton clearButton;
     private JLabel output;
+    private JTextArea logOut;
 
     static class TableResult {
 
@@ -38,24 +34,24 @@ public class UseFormulaMenu {
     }
 
     static class FormulaVariableTableModel extends AbstractTableModel {
-        private final List<String> variables;
+        private final String[] variables;
         private final String[] columnNames = {"Variable", "Value"};
         private final Object[][] data;
 
-        public FormulaVariableTableModel(List<String> variables) {
+        public FormulaVariableTableModel(String[] variables) {
             this.variables = variables;
-            data = new Object[variables.size()][2];
+            data = new Object[variables.length][2];
 
             // Populate column 1 (Variable names)
-            for (int i = 0; i < variables.size(); i++) {
-                data[i][0] = variables.get(i);
+            for (int i = 0; i < variables.length; i++) {
+                data[i][0] = variables[i];
                 data[i][1] = ""; // Blank values
             }
         }
 
         @Override
         public int getRowCount() {
-            return variables.size();
+            return variables.length;
         }
 
         @Override
@@ -94,7 +90,9 @@ public class UseFormulaMenu {
 
             frame.setContentPane(menu.panel1); // Set the UI panel
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.setLocationRelativeTo(null);
             frame.pack(); // Auto-size based on UI components
+            frame.setLocationRelativeTo(null);
             frame.setVisible(true); // Show window
         });
     }
@@ -103,10 +101,10 @@ public class UseFormulaMenu {
         createUIComponents();
 
         formulaNameLabel.setText(record.name());
-        formulaIconLabel.setIcon(FormulaProcessor.generateLatexIcon(record.expression()));
+        formulaIconLabel.setIcon(FormulaProcessor.generateLatexIcon(record.expression(), 30));
 
         // Populate table
-        List<String> variables = new ArrayList<>(record.symbols());
+        String[] variables = Arrays.copyOf(record.symbols(), record.symbols().length);
         FormulaVariableTableModel model = new FormulaVariableTableModel(variables);
         table1.setModel(model);
 
@@ -133,10 +131,17 @@ public class UseFormulaMenu {
     private void solve(String formula, HashMap<String, Double> variables, String unknown) {
         String result = FormulaEvaluator.solveForUnknown(formula, variables, unknown);
         output.setText(result);
+        addLog(variables, result);
+    }
+
+    private void addLog(HashMap<String, Double> variables, String result) {
+        String log = String.format("Variables: %s\nResult: %s\n", variables, result);
+        logOut.append(log);
     }
 
     private void showError(String s) {
-        output.setText(s);
+        output.setText("Error");
+        logOut.append(s + "\n");
     }
 
     private void clear() {

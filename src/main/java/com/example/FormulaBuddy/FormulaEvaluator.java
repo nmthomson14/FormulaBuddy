@@ -12,7 +12,7 @@ public class FormulaEvaluator {
         ExprEvaluator evaluator = new ExprEvaluator();
 
         try {
-            // Convert = to == for Symja Solve
+            // Convert '=' to '==' for Symja Solve
             String expression = equation.replace("=", "==");
 
             // Define known variables
@@ -23,13 +23,20 @@ public class FormulaEvaluator {
             // Solve for the unknown
             IExpr result = evaluator.eval("Solve(" + expression + ", " + unknown + ")");
 
-            // Expecting result like: {{y -> 76.8}}
-            if (result.isList() && !result.isEmpty() && result.getAt(1).isList()) {
-                IExpr rule = result.getAt(1).getAt(1); // Extract y -> 76.8
+            // Check for a non-empty list result
+            if (result.isList() && !result.isEmpty()) {
+                IExpr firstSolution = result.getAt(1); // First solution in the list
 
-                if (rule.isAST() && rule.size() == 3 && rule.getAt(0).toString().equals("Rule")) {
-                    IExpr value = rule.getAt(2); // Get the value (RHS)
-                    return unknown + " = " + value.toString();
+                if (firstSolution.isList()) {
+                    for (int i = 1; i < firstSolution.size(); i++) {
+                        IExpr rule = firstSolution.getAt(i);
+
+                        if (rule.isRule()) {
+                            IExpr lhs = rule.getAt(1); // Variable name
+                            IExpr rhs = rule.getAt(2); // Solved value
+                            return lhs + " = " + rhs;
+                        }
+                    }
                 }
             }
 
@@ -39,21 +46,4 @@ public class FormulaEvaluator {
         }
     }
 
-    public static IExpr evaluate(FormulaRecord formulaRecord, HashMap<String, String> variables) {
-        ExprEvaluator evaluator = new ExprEvaluator();
-        IExpr parsedExpression = evaluator.parse(formulaRecord.expression());
-        for (var entry : variables.entrySet()) {
-            if (formulaRecord.symbols().contains(entry.getKey())) {
-                IExpr varValue = evaluator.parse(entry.getValue());
-                evaluator.defineVariable(entry.getKey(), varValue);
-            }
-        }
-        return evaluator.eval(parsedExpression);
-    }
-
-    // TODO: CREATE A METHOD THAT EVALUATES EACH STEP OF A FORMULA, RETURNING AN IEXPRESSION THAT CAN BE RENDERED AS LATEX
-    // TODO: COULD ALSO RETURN STRINGS IF THATS EASIER
-    public static IExpr[] evaluateSteps() {
-        return null;
-    }
 }

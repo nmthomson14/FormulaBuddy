@@ -1,14 +1,10 @@
 package com.example.FormulaBuddy;
 
+import com.example.FormulaBuddy.GUI.FormulaTableMenu;
+
 public class Main {
 
     public static void main(String[] args) {
-
-        GUIBuilder gui = new GUIBuilder();
-
-        SystemMessageHandler.initializeInstance(
-                new MessageReceiver[] { gui }
-        );
-
+        FormulaTableMenu.createMenu();
     }
 }
