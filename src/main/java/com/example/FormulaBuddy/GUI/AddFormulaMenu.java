@@ -3,8 +3,12 @@ package com.example.FormulaBuddy.GUI;
 import com.example.FormulaBuddy.*;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.Arrays;
 
 public class AddFormulaMenu {
@@ -35,6 +39,8 @@ public class AddFormulaMenu {
     }
 
     private AddFormulaMenu(FormulaRecord formulaToEdit, Runnable onConfirm) {
+        setupUI();
+
         validCheckbox.setSelected(false);
         validCheckbox.setEnabled(false);
         validCheckbox.setText("Please Enter a formula!");
@@ -61,44 +67,57 @@ public class AddFormulaMenu {
             functionPanel.add(btn);
         }
 
-        inputFieldLHS.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        inputFieldLHS.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { renderFormula(); }
+            public void insertUpdate(DocumentEvent e) {
+                renderFormula();
+            }
+
             @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { renderFormula(); }
+            public void removeUpdate(DocumentEvent e) {
+                renderFormula();
+            }
+
             @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { renderFormula(); }
+            public void changedUpdate(DocumentEvent e) {
+                renderFormula();
+            }
         });
 
-        inputFieldLHS.addFocusListener(new java.awt.event.FocusAdapter() {
+        inputFieldLHS.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusGained(java.awt.event.FocusEvent evt) {
+            public void focusGained(FocusEvent evt) {
                 currentSelectedField = inputFieldLHS;
             }
         });
 
-        inputFieldRHS.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        inputFieldRHS.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { renderFormula(); }
+            public void insertUpdate(DocumentEvent e) {
+                renderFormula();
+            }
+
             @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { renderFormula(); }
+            public void removeUpdate(DocumentEvent e) {
+                renderFormula();
+            }
+
             @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { renderFormula(); }
+            public void changedUpdate(DocumentEvent e) {
+                renderFormula();
+            }
         });
 
-        inputFieldRHS.addFocusListener(new java.awt.event.FocusAdapter() {
+        inputFieldRHS.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusGained(java.awt.event.FocusEvent evt) {
+            public void focusGained(FocusEvent evt) {
                 currentSelectedField = inputFieldRHS;
             }
         });
 
         confirmButton.addActionListener(e -> {
             try {
-                String[] tags = Arrays.stream(tagsField.getText().split(","))
-                        .map(String::trim)
-                        .filter(tag -> !tag.isEmpty())
-                        .toArray(String[]::new);
+                String[] tags = Arrays.stream(tagsField.getText().split(",")).map(String::trim).filter(tag -> !tag.isEmpty()).toArray(String[]::new);
                 String formula = inputFieldLHS.getText() + " = " + inputFieldRHS.getText();
                 FormulaRecord record = FormulaProcessor.processFormula(nameField.getText(), formula, tags);
 
@@ -162,4 +181,120 @@ public class AddFormulaMenu {
         inputField.requestFocusInWindow();
         inputField.setCaretPosition(pos + cursorOffset);
     }
+
+    private void setupUI() {
+        panel1 = new JPanel();
+        panel1.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        addFormulaLabel = new JLabel("Add Formula");
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 4;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel1.add(addFormulaLabel, gbc);
+
+        JLabel label4 = new JLabel("Name");
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel1.add(label4, gbc);
+
+        nameField = new JTextField();
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        panel1.add(nameField, gbc);
+
+        JLabel label5 = new JLabel("Tags (comma separated)");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        panel1.add(label5, gbc);
+
+        tagsField = new JTextField();
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.gridwidth = 3;
+        panel1.add(tagsField, gbc);
+
+        JLabel label2 = new JLabel("Input");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        panel1.add(label2, gbc);
+
+        inputFieldLHS = new JTextField();
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        panel1.add(inputFieldLHS, gbc);
+
+        JLabel label6 = new JLabel("=");
+        gbc.gridx = 2;
+        gbc.gridy = 3;
+        panel1.add(label6, gbc);
+
+        inputFieldRHS = new JTextField();
+        gbc.gridx = 3;
+        gbc.gridy = 3;
+        panel1.add(inputFieldRHS, gbc);
+
+        JLabel label8 = new JLabel("Please note that some letters like e (regardless of capitalization) are regarded as constants.");
+        label8.setFont(new Font(label8.getFont().getName(), Font.PLAIN, 10));
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.gridwidth = 3;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel1.add(label8, gbc);
+
+        JLabel label3 = new JLabel("Functions");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        panel1.add(label3, gbc);
+
+        functionPanel = new JPanel();
+        functionPanel.setLayout(new BorderLayout());
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel1.add(functionPanel, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel label1 = new JLabel("Formula");
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 1;
+        panel1.add(label1, gbc);
+
+        output = new JLabel("");
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        gbc.gridwidth = 3;
+        panel1.add(output, gbc);
+
+        JLabel label7 = new JLabel("Formula Valid:");
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 1;
+        panel1.add(label7, gbc);
+
+        validCheckbox = new JCheckBox("CheckBox");
+        gbc.gridx = 1;
+        gbc.gridy = 7;
+        panel1.add(validCheckbox, gbc);
+
+        confirmButton = new JButton("Confirm");
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 4;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel1.add(confirmButton, gbc);
+    }
+
 }

@@ -6,6 +6,7 @@ import com.example.FormulaBuddy.FormulaRecord;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import java.awt.*;
 import java.util.*;
 
 public class UseFormulaMenu {
@@ -18,14 +19,117 @@ public class UseFormulaMenu {
     private JLabel output;
     private JTextArea logOut;
 
+    private void setupUI() {
+        panel1 = new JPanel(new GridBagLayout());
+        panel1.setEnabled(true);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // Formula Name Label
+        formulaNameLabel = new JLabel("Formula Name", SwingConstants.CENTER);
+        Font font = new Font(formulaNameLabel.getFont().getName(), Font.BOLD, 20);
+        formulaNameLabel.setFont(font);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 3;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel1.add(formulaNameLabel, gbc);
+
+        // Formula Icon Label
+        formulaIconLabel = new JLabel();
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;
+        panel1.add(formulaIconLabel, gbc);
+
+        // Table inside ScrollPane
+        table1 = new JTable();
+        JScrollPane scrollPane1 = new JScrollPane(table1);
+        scrollPane1.setPreferredSize(new Dimension(-1, 200));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel1.add(scrollPane1, gbc);
+
+        // "Log" label
+        JLabel logLabel = new JLabel("Log");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel1.add(logLabel, gbc);
+
+        // Log Output (JTextArea inside ScrollPane)
+        logOut = new JTextArea();
+        logOut.setEditable(false);
+        logOut.setLineWrap(true);
+        JPanel logPanel = new JPanel(new BorderLayout());
+        logPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black)));
+        logPanel.setBackground(new Color(-3904));
+        logPanel.add(logOut);
+        JScrollPane scrollPane2 = new JScrollPane(logPanel);
+        gbc.gridx = 2;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+        panel1.add(scrollPane2, gbc);
+
+        // "Result" Label
+        JLabel resultLabel = new JLabel("Result");
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel1.add(resultLabel, gbc);
+
+        // Output Panel with Label
+        output = new JLabel("");
+        output.setFont(new Font(output.getFont().getName(), Font.BOLD, 20));
+        output.setBackground(new Color(-11826809));
+        JPanel resultPanel = new JPanel(new GridBagLayout());
+        resultPanel.setBackground(new Color(-3904));
+        resultPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black)));
+        resultPanel.add(output);
+        gbc.gridx = 2;
+        gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        panel1.add(resultPanel, gbc);
+
+        // Evaluate Button
+        evaluateButton = new JButton("Evaluate");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 3;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel1.add(evaluateButton, gbc);
+
+        // Clear Button
+        clearButton = new JButton("Clear");
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 3;
+        panel1.add(clearButton, gbc);
+
+        scrollPane1.setPreferredSize(new Dimension(400, 200));
+        scrollPane2.setPreferredSize(new Dimension(400, 100));
+        resultPanel.setPreferredSize(new Dimension(200, 40));
+        panel1.setMinimumSize(new Dimension(500, 600)); // Adjust as needed
+        table1.setMinimumSize(new Dimension(400, 200));
+        logOut.setMinimumSize(new Dimension(300, 80));
+    }
+
+
     static class TableResult {
 
         public enum ReturnResult {
-            NAN,
-            NO_UNKNOWN,
-            TOO_MANY_UNKNOWNS,
-            PASS,
-            FAIL;
+            NAN, NO_UNKNOWN, TOO_MANY_UNKNOWNS, PASS, FAIL;
         }
 
         public ReturnResult result = ReturnResult.FAIL;
@@ -90,7 +194,6 @@ public class UseFormulaMenu {
 
             frame.setContentPane(menu.panel1); // Set the UI panel
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.setLocationRelativeTo(null);
             frame.pack(); // Auto-size based on UI components
             frame.setLocationRelativeTo(null);
             frame.setVisible(true); // Show window
@@ -98,6 +201,7 @@ public class UseFormulaMenu {
     }
 
     private UseFormulaMenu(FormulaRecord record) {
+        setupUI();
         formulaNameLabel.setText(record.name());
         formulaIconLabel.setIcon(FormulaProcessor.generateLatexIcon(record.expression(), 30));
 

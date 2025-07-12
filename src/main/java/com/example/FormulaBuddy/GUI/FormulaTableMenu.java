@@ -5,12 +5,16 @@ import com.example.FormulaBuddy.FormulaProcessor;
 import com.example.FormulaBuddy.FormulaRecord;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class FormulaTableMenu {
@@ -27,11 +31,131 @@ public class FormulaTableMenu {
     private JButton addFormula;
     private JButton resetFormulasButton;
     private TableRowSorter<FormulaTableModel> rowSorter;
-    private String[] comboBoxItems = new String[] {"Name", "Tags", "Expression", "Variables"};
+    private final String[] comboBoxItems = new String[]{"Name", "Tags", "Expression", "Variables"};
 
     //references
     private FormulaRecord selectedFormula = null;
     private FormulaTableModel model;
+
+    private void setupUI() {
+        panel1 = new JPanel(new GridBagLayout());
+        panel1.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+        GridBagConstraints c = new GridBagConstraints();
+
+        // Logo
+        JLabel logoLabel = new JLabel(new ImageIcon(Objects.requireNonNull(getClass().getResource("/Logo64x64.png"))));
+        c.gridx = 3;
+        c.gridy = 0;
+        panel1.add(logoLabel, c);
+
+        // Title: Formula
+        JLabel formulaTitle = new JLabel("Formula");
+        formulaTitle.setFont(new Font("Default", Font.BOLD, 20));
+        c.gridx = 1;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.EAST;
+        panel1.add(formulaTitle, c);
+
+        // Title: Buddy
+        JLabel buddyTitle = new JLabel("Buddy");
+        buddyTitle.setFont(new Font("Default", Font.BOLD, 20));
+        c.gridx = 4;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.WEST;
+        panel1.add(buddyTitle, c);
+
+        // Search Label
+        JLabel searchLabel = new JLabel("Search:");
+        c.gridx = 1;
+        c.gridy = 1;
+        c.gridwidth = 1;
+        c.anchor = GridBagConstraints.WEST;
+        panel1.add(searchLabel, c);
+
+        // Search TextField
+        searchTextField = new JTextField(20);
+        c.gridx = 2;
+        c.gridwidth = 3;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(searchTextField, c);
+
+        // Search By Label
+        JLabel searchByLabel = new JLabel("Search By:");
+        c.gridx = 5;
+        c.gridwidth = 1;
+        c.fill = GridBagConstraints.NONE;
+        panel1.add(searchByLabel, c);
+
+        // ComboBox
+        comboBox1 = new JComboBox<>();
+        c.gridx = 6;
+        c.gridwidth = 2;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(comboBox1, c);
+
+        // Search Help Label
+        JLabel helpLabel = new JLabel("Separate search terms with a comma (,)");
+        helpLabel.setFont(new Font("Default", Font.PLAIN, 10));
+        c.gridx = 1;
+        c.gridy = 2;
+        c.gridwidth = 5;
+        panel1.add(helpLabel, c);
+
+        // Table
+        table1 = new JTable();
+        table1.setPreferredScrollableViewportSize(new Dimension(600, 400));
+        JScrollPane scrollPane = new JScrollPane(table1);
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 8;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+        panel1.add(scrollPane, c);
+
+        // Rendered Formula Labels
+        JLabel renderedFormulaText = new JLabel("Rendered Formula");
+        c.gridy = 4;
+        c.gridx = 1;
+        c.gridwidth = 7;
+        c.weightx = 0;
+        c.weighty = 0;
+        c.fill = GridBagConstraints.NONE;
+        panel1.add(renderedFormulaText, c);
+
+        renderedFormulaLabel = new JLabel("Rendered Formula");
+        c.gridy = 5;
+        panel1.add(renderedFormulaLabel, c);
+
+        // Buttons
+        useFormulaButton = new JButton("Use Formula");
+        c.gridy = 6;
+        c.gridx = 1;
+        c.gridwidth = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel1.add(useFormulaButton, c);
+
+        addFormula = new JButton("Add New Formula");
+        c.gridx = 2;
+        panel1.add(addFormula, c);
+
+        editFormulaButton = new JButton("Edit Formula");
+        c.gridx = 3;
+        panel1.add(editFormulaButton, c);
+
+        deleteFormulaButton = new JButton("Delete Formula");
+        deleteFormulaButton.setForeground(new Color(-1769216));
+        c.gridx = 4;
+        c.gridwidth = 3;
+        panel1.add(deleteFormulaButton, c);
+
+        resetFormulasButton = new JButton("Reset Formulas");
+        resetFormulasButton.setForeground(new Color(-1769216));
+        c.gridx = 7;
+        c.gridwidth = 1;
+        panel1.add(resetFormulasButton, c);
+    }
 
     static class FormulaTableModel extends AbstractTableModel {
         private final List<FormulaRecord> formulas;
@@ -88,16 +212,25 @@ public class FormulaTableMenu {
     }
 
     private FormulaTableMenu() {
+        setupUI();
         updateTable();
 
         // Create events
-        searchTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        searchTextField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
+            public void insertUpdate(DocumentEvent e) {
+                filterTable();
+            }
+
             @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
+            public void removeUpdate(DocumentEvent e) {
+                filterTable();
+            }
+
             @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
+            public void changedUpdate(DocumentEvent e) {
+                filterTable();
+            }
         });
 
         useFormulaButton.addActionListener(e -> {
