@@ -26,11 +26,11 @@ public class AreYouSureMenu {
 
         label1.setText(message);
 
-        yesButton.addActionListener(_ -> {
+        yesButton.addActionListener(e -> {
             subscriberMethod.run();
             frame.dispose();
         });
-        cancelButton.addActionListener(_ -> {
+        cancelButton.addActionListener(e -> {
             frame.dispose();
         });
     }

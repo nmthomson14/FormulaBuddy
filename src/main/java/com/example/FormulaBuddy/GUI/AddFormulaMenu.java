@@ -21,11 +21,6 @@ public class AddFormulaMenu {
     private JCheckBox validCheckbox;
     private JTextField currentSelectedField;
 
-    private void createUIComponents() {
-        functionPanel.setLayout(new GridLayout(0, 3, 5, 5));
-        functionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    }
-
     public static void createMenu(FormulaRecord record, Runnable onConfirm) {
         SwingUtilities.invokeLater(() -> {
             frame = new JFrame("Formula Buddy");
@@ -45,6 +40,8 @@ public class AddFormulaMenu {
         validCheckbox.setText("Please Enter a formula!");
         confirmButton.setEnabled(false);
         currentSelectedField = inputFieldRHS;
+        functionPanel.setLayout(new GridLayout(0, 3, 5, 5));
+        functionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         if (formulaToEdit != null) {
             nameField.setText(formulaToEdit.name());
@@ -57,8 +54,6 @@ public class AddFormulaMenu {
         } else {
             addFormulaLabel.setText("Add Formula");
         }
-
-        createUIComponents();
 
         for (var record : FunctionDictionary.COMMON_FUNCTIONS) {
             JButton btn = createCalculatorSymbolButton(record);
@@ -98,7 +93,7 @@ public class AddFormulaMenu {
             }
         });
 
-        confirmButton.addActionListener(_ -> {
+        confirmButton.addActionListener(e -> {
             try {
                 String[] tags = Arrays.stream(tagsField.getText().split(","))
                         .map(String::trim)
@@ -115,7 +110,7 @@ public class AddFormulaMenu {
 
                 onConfirm.run();
                 frame.dispose();
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException ex) {
                 output.setText("Invalid formula!");
             }
         });

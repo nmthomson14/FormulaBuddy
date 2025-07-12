@@ -98,8 +98,6 @@ public class UseFormulaMenu {
     }
 
     private UseFormulaMenu(FormulaRecord record) {
-        createUIComponents();
-
         formulaNameLabel.setText(record.name());
         formulaIconLabel.setIcon(FormulaProcessor.generateLatexIcon(record.expression(), 30));
 
@@ -153,8 +151,6 @@ public class UseFormulaMenu {
 
         output.setText("");
     }
-
-    private void createUIComponents() { }
 
     private TableResult tryReadTable() {
 

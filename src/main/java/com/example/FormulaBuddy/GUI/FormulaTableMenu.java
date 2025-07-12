@@ -100,12 +100,12 @@ public class FormulaTableMenu {
             public void changedUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
         });
 
-        useFormulaButton.addActionListener(_ -> {
+        useFormulaButton.addActionListener(e -> {
             if (selectedFormula == null) return;
             UseFormulaMenu.createMenu(selectedFormula);
         });
 
-        deleteFormulaButton.addActionListener(_ -> {
+        deleteFormulaButton.addActionListener(e -> {
             AreYouSureMenu.CreateMenu("Once you delete a formula, it is gone for good!", () -> { // creates runnable
                 if (selectedFormula == null) return;
                 FileHandler.deleteFormulaRecord(selectedFormula);
@@ -113,18 +113,18 @@ public class FormulaTableMenu {
             });
         });
 
-        resetFormulasButton.addActionListener(_ -> {
+        resetFormulasButton.addActionListener(e -> {
             AreYouSureMenu.CreateMenu("Resetting will delete all custom added formulas and restore only defaults!", () -> { // creates runnable
                 FileHandler.resetFormulaRecords();
                 updateTable();
             });
         });
 
-        editFormulaButton.addActionListener(_ -> {
+        editFormulaButton.addActionListener(e -> {
             AddFormulaMenu.createMenu(selectedFormula, this::updateTable);
         });
 
-        addFormula.addActionListener(_ -> {
+        addFormula.addActionListener(e -> {
             AddFormulaMenu.createMenu(null, this::updateTable);
         });
 
@@ -150,9 +150,6 @@ public class FormulaTableMenu {
             }
         });
     }
-
-
-    private void createUIComponents() { }
 
     private void updateTable() {
         List<FormulaRecord> formulaRecords = FileHandler.getFormulaRecords();
